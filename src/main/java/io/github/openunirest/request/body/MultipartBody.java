@@ -25,7 +25,6 @@ package io.github.openunirest.request.body;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,7 +46,6 @@ public class MultipartBody extends BaseRequest implements Body {
     private List<FormPart> parameters = new ArrayList<>();
 
     private HttpRequestWithBody httpRequestObj;
-    private HttpMultipartMode mode;
 
     public MultipartBody(HttpRequestWithBody httpRequest) {
         super(httpRequest);
@@ -121,17 +119,14 @@ public class MultipartBody extends BaseRequest implements Body {
         return this;
     }
 
-    public MultipartBody mode(String value) {
-        this.mode = HttpMultipartMode.valueOf(value);
-        return this;
-    }
-
     @Override
     public HttpEntity getEntity() {
         if (parameters.stream().anyMatch(FormPart::isFile)) {
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            builder.setCharset(StandardCharsets.UTF_8);
+            if (httpRequestObj.getCharset() != null) {
+                builder.setCharset(httpRequestObj.getCharset());
+            }
             for (FormPart key : parameters) {
                 builder.addPart(key.getName(), key.toApachePart());
             }
